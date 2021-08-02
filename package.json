@@ -24,6 +24,7 @@
     "passport-local": "^1.0.0"
   },
   "devDependencies": {
+    "@types/react-router-dom": "^5.1.8",
     "eslint": "^7.32.0",
     "nodemon": "^1.18.9"
   }
