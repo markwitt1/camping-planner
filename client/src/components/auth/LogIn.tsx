@@ -13,11 +13,10 @@ import { Field, Form, Formik } from "formik";
 
 import * as yup from "yup";
 
-import { useSnackbar } from "material-ui-snackbar-provider";
 import { TextField } from "formik-material-ui";
-import logInUser from "../../logInUser";
 import { FunctionComponent } from "react";
 import { Box } from "@material-ui/core";
+import useApi from "hooks/useApi";
 const useStyles = makeStyles((theme) => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -40,9 +39,9 @@ const useStyles = makeStyles((theme) => ({
 
 const LogIn: FunctionComponent = () => {
   const classes = useStyles();
-  const snackbar = useSnackbar();
   const { push } = useHistory();
 
+  const { logIn } = useApi();
   return (
     <Box>
       <Formik
@@ -58,11 +57,7 @@ const LogIn: FunctionComponent = () => {
           console.log("submit");
           setSubmitting(true);
 
-          logInUser(values)
-            .then(() => push("/profile"))
-            .catch((e) =>
-              snackbar.showMessage("error logging in: " + e.message)
-            );
+          logIn(values).then((res) => res && push("/profile"));
 
           setSubmitting(false);
         }}

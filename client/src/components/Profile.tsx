@@ -1,12 +1,9 @@
 import { Box, Button, makeStyles, Typography } from "@material-ui/core";
-import { useSnackbar } from "material-ui-snackbar-provider";
-import React, { useEffect } from "react";
+import useApi from "hooks/useApi";
+import React, { useEffect, useState } from "react";
 import { FunctionComponent } from "react";
-import { useHistory } from "react-router-dom";
-import api from "../api";
-import useLocalStorage from "../hooks/useLocalStorage";
-
-import { User } from "../types";
+import { Link, useHistory } from "react-router-dom";
+import { User } from "types";
 
 const useStyles = makeStyles({
   center: {
@@ -19,21 +16,23 @@ const useStyles = makeStyles({
 
 const Profile: FunctionComponent = () => {
   const { push } = useHistory();
-  const snackbar = useSnackbar();
   const classes = useStyles();
 
-  const [user, setUser] = useLocalStorage<User | undefined>("user", undefined);
+  const { logOut } = useApi();
+
+  const { getCurrentUser } = useApi();
+
+  const [cachedUser, setCachedUser] = useState<User | undefined>(undefined);
 
   useEffect(() => {
-    if (!user) {
-      snackbar.showMessage("You have to be signed in to use this app");
-      push("/login");
-    }
-  }, [user]);
+    getCurrentUser()
+      .then(({ data }) => setCachedUser(data))
+      .catch(() => push("/login"));
+  }, []);
   return (
     <Box margin="1rem">
       <Typography variant="h5" className={classes.center}>
-        Username:{user?.username}
+        Username:{cachedUser?.username}
       </Typography>
       <Box
         display="flex"
@@ -41,15 +40,15 @@ const Profile: FunctionComponent = () => {
         justifyContent="center"
         alignItems="center"
       >
-        <Button className={classes.btn} component="a" href="/">
+        <Button className={classes.btn} component={Link} to="/">
           Go to groups
         </Button>
         <Button
           className={classes.btn}
           onClick={() => {
-            api.get("/users/logout").then(() => {
+            logOut().then(() => {
               push("/login");
-              setUser(undefined);
+              setCachedUser(undefined);
             });
           }}
         >

@@ -2,7 +2,6 @@ import React, { FunctionComponent } from "react";
 import * as yup from "yup";
 import { Link as RouterLink, useHistory } from "react-router-dom";
 import { Field, Form, Formik } from "formik";
-import { useSnackbar } from "material-ui-snackbar-provider";
 import { TextField } from "formik-material-ui";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import { makeStyles } from "@material-ui/core/styles";
@@ -16,9 +15,7 @@ import {
   Link,
   Typography,
 } from "@material-ui/core";
-
-import logInUser from "../../logInUser";
-import api from "../../api";
+import useApi from "hooks/useApi";
 
 interface Values {
   username: string;
@@ -47,21 +44,14 @@ const useStyles = makeStyles((theme) => ({
 
 const SignUp: FunctionComponent = () => {
   const classes = useStyles();
-  const snackbar = useSnackbar();
   const { push } = useHistory();
 
+  const { logIn, signUp: apiSignUp } = useApi();
+
   const signUp = async ({ username, password }: Values) => {
-    try {
-      const res = await api.post("/users/signup", { username, password });
-      if (res.data.err) {
-        snackbar.showMessage("error signing up: " + res.data.err);
-      } else {
-        logInUser({ username, password }).then(() => push("/profile"));
-      }
-    } catch (error) {
-      console.log(JSON.stringify(error));
-      snackbar.showMessage("error signing up: " + error.message);
-      console.log("error signing up: ", error);
+    const res = await apiSignUp({ username, password });
+    if (!res.data.err) {
+      logIn({ username, password }).then(() => push("/profile"));
     }
   };
 

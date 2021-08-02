@@ -15,16 +15,14 @@ import { useCallback, useEffect, useState } from "react";
 import AddIcon from "@material-ui/icons/Add";
 import DeleteIcon from "@material-ui/icons/Delete";
 
-import { Group, User } from "../types";
+import { Group } from "../types";
 import { filter } from "lodash";
-import useLocalStorage from "../hooks/useLocalStorage";
 import IsEmptyDisplay from "./IsEmptyDisplay";
 import GroupDialog from "./dialogs/GroupDialog";
-import { useHistory } from "react-router-dom";
 import { useSnackbar } from "material-ui-snackbar-provider";
 import { Share as ShareIcon } from "@material-ui/icons";
-
-import api from "../api";
+import useApi from "hooks/useApi";
+import { Link } from "react-router-dom";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -54,8 +52,8 @@ const useStyles = makeStyles((theme) =>
 );
 
 const Home: FunctionComponent = () => {
+  const { createGroup, deleteGroup, getSavedGroups } = useApi();
   const classes = useStyles();
-  const { push } = useHistory();
   const snackbar = useSnackbar();
 
   const [savedGroups, setSavedGroups] = useState<Group[]>([]);
@@ -65,20 +63,16 @@ const Home: FunctionComponent = () => {
   const handleClose = () => setDialogOpen(false);
   const handleClickOpen = () => setDialogOpen(true);
 
-  const [user] = useLocalStorage<User | undefined>("user", undefined);
   const loadSavedGroups = useCallback(async () => {
     setLoading(true);
 
-    if (user) {
-      const res = await api.get(`/users/${user?.username}/getSavedGroups`);
-      console.log(res.data);
-      if (res.data) setSavedGroups(res.data);
-    } else {
-      push("/signup");
-      snackbar.showMessage("You have to be signed in to use this app");
-    }
-    setLoading(false);
-  }, [user]);
+    getSavedGroups().then((res) => {
+      if (res) {
+        setSavedGroups(res.data);
+        setLoading(false);
+      }
+    });
+  }, []);
   useEffect(() => {
     loadSavedGroups();
   }, [loadSavedGroups]);
@@ -92,8 +86,8 @@ const Home: FunctionComponent = () => {
           {savedGroups.map((savedGroup) => (
             <ListItem
               button
-              component="a"
-              href={`/group/${savedGroup._id}`}
+              component={Link}
+              to={`/group/${savedGroup._id}`}
               divider
               key={savedGroup._id}
             >
@@ -118,7 +112,7 @@ const Home: FunctionComponent = () => {
                   edge="end"
                   aria-label="delete"
                   onClick={() => {
-                    api.delete(`/groups/${savedGroup._id}`);
+                    deleteGroup(savedGroup._id);
                     setSavedGroups(
                       filter(savedGroups, (g) => g._id !== savedGroup._id)
                     );
@@ -148,11 +142,8 @@ const Home: FunctionComponent = () => {
       <GroupDialog
         open={dialogOpen}
         handleClose={handleClose}
-        handleSubmit={async ({ title, description }) => {
-          await api.post("/groups", {
-            title,
-            description,
-          });
+        handleSubmit={async (values) => {
+          createGroup(values);
 
           handleClose();
           loadSavedGroups();

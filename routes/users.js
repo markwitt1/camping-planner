@@ -6,22 +6,22 @@ const passport = require("passport");
 const User = require("../models/User");
 const { ensureAuthenticated } = require("../config/auth");
 const Group = require("../models/Group");
-const _ = require("lodash");
+const userResponse = require("../utils/userResponse");
 
 // Register
 router.post("/signup", (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    res.json({ err: "Please enter all fields" });
+    res.status(401).json({ err: "Please enter all fields" });
   }
 
   if (password.length < 8) {
-    res.json({ err: "Password must be at least 8 characters" });
+    res.status(401).json({ err: "Password must be at least 8 characters" });
   } else {
     User.findOne({ username: username }).then((user) => {
       if (user) {
-        res.json({ err: "User already exists" });
+        res.status(401).json({ err: "User already exists" });
       } else {
         const newUser = new User({
           username,
@@ -49,7 +49,7 @@ router.post("/signup", (req, res) => {
 
 // Login
 router.post("/login", passport.authenticate("local"), (req, res) => {
-  const user = _.pick(req.user, ["username", "_id"]);
+  const user = userResponse(req.user);
   res.json(user);
 });
 
@@ -59,19 +59,27 @@ router.get("/logout", (req, res) => {
   res.send({ message: "successfully logged out" });
 });
 
-router.get("/:username", ensureAuthenticated, async (req, res) => {
-  const user = await User.findOne({ username: req.params.username });
-  res.json(user);
+router.get("/savedGroups", ensureAuthenticated, async (req, res) => {
+  console.log({ req });
+  if (req.user.savedGroups.length === 0) {
+    return res.json([]);
+  }
+  const savedGroups = await Group.find({
+    _id: { $in: req.user.savedGroups },
+  });
+
+  console.log(savedGroups);
+  res.json(savedGroups);
 });
 
-router.post("/saveGroup", ensureAuthenticated, async (req, res) => {
+router.get("/saveGroup/:groupId", ensureAuthenticated, async (req, res) => {
   const user = await User.findOne({ _id: req.user.id });
   if (user) {
-    user.savedGroups.push(req.body.groupID);
+    user.savedGroups.push(req.params.groupId);
     user
       .save()
       .then((u) => {
-        res.send(u);
+        res.send(userResponse(u));
       })
       .catch((err) => res.statusCode(500).send(err));
   } else {
@@ -79,20 +87,9 @@ router.post("/saveGroup", ensureAuthenticated, async (req, res) => {
   }
 });
 
-router.get(
-  "/:username/getSavedGroups",
-  ensureAuthenticated,
-  async (req, res) => {
-    const user = await User.findOne({ username: req.params.username });
-    const savedGroups = await Group.find({
-      _id: { $in: user.savedGroups },
-    });
-    res.json(savedGroups);
-  }
-);
-
-router.get("/isLoggedIn", ensureAuthenticated, async (req, res) => {
-  res.sendStatus(200);
+router.get("/:username", ensureAuthenticated, async (req, res) => {
+  const user = await User.findOne({ username: req.params.username });
+  res.json(user);
 });
 
 module.exports = router;

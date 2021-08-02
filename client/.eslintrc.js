@@ -19,5 +19,6 @@ module.exports = {
   plugins: ["react", "@typescript-eslint"],
   rules: {
     "react/no-unescaped-entities": 0,
+    "@typescript-eslint/no-explicit-any": 0,
   },
 };

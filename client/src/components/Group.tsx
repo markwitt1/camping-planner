@@ -21,13 +21,11 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import AddIcon from "@material-ui/icons/Add";
 import { ThingToBring, User } from "../types";
 
-import api from "../api";
-
-import useLocalStorage from "../hooks/useLocalStorage";
 import { Delete } from "@material-ui/icons";
 import { filter } from "lodash";
 import ThingDialog from "./dialogs/ThingDialog";
 import IsEmptyDisplay from "./IsEmptyDisplay";
+import useApi from "hooks/useApi";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -61,10 +59,18 @@ const Group: FunctionComponent = () => {
   const snackbar = useSnackbar();
   const classes = useStyles();
 
-  const [user] = useLocalStorage<Partial<User> | undefined>("user", undefined);
+  const {
+    addThingToBring,
+    getCurrentUser,
+    getThingsToBring,
+    deleteThingToBring,
+    saveGroup,
+  } = useApi();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [thingsTobring, setThingsTobring] = useState<ThingToBring[]>([]);
+  const [cachedUser, setCachedUser] = useState<User | undefined>(undefined);
 
   const handleClickOpen = () => {
     setDialogOpen(true);
@@ -76,12 +82,10 @@ const Group: FunctionComponent = () => {
   const loadThings = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get<ThingToBring[]>(
-        `/groups/${groupID}/getThingsToBring`
-      );
-      if (res.data) {
-        setThingsTobring(res.data);
-        console.log(res.data);
+      const { data } = await getThingsToBring(groupID);
+      if (data) {
+        setThingsTobring(data);
+        console.log(data);
       }
 
       setLoading(false);
@@ -92,31 +96,33 @@ const Group: FunctionComponent = () => {
 
   useEffect(() => {
     loadThings();
-    setTimeout(() => {
-      api.get<User>(`/users/${user?.username}`).then((res) => {
-        console.log(res);
-        if (!!groupID && !res.data.savedGroups.includes(groupID)) {
+    getCurrentUser().then((res) => {
+      setCachedUser(res.data);
+      setTimeout(() => {
+        if (!!groupID && !res.data.savedGroups?.includes(groupID)) {
           console.log("test");
-          api.post("/users/saveGroup", { groupID });
+          saveGroup(groupID);
         }
-      });
-    }, 100);
-  }, [loadThings, push, snackbar, user]);
+      }, 100);
+    });
+  }, [loadThings, push, snackbar]);
 
   const setSelfBringing = async (
     thingToBring: ThingToBring,
     bringing: boolean
   ) => {
-    thingToBring.usersBringing = bringing
-      ? [...thingToBring.usersBringing, user?.username as string]
-      : filter(
-          thingToBring.usersBringing,
-          (username) => username !== user?.username
-        );
-    const newThingsToBring = thingsTobring.map((ttb) =>
-      ttb._id === thingToBring._id ? thingToBring : ttb
-    );
-    setThingsTobring(newThingsToBring);
+    getCurrentUser().then(({ data: user }) => {
+      thingToBring.usersBringing = bringing
+        ? [...thingToBring.usersBringing, user.username as string]
+        : filter(
+            thingToBring.usersBringing,
+            (username) => username !== user.username
+          );
+      const newThingsToBring = thingsTobring.map((ttb) =>
+        ttb._id === thingToBring._id ? thingToBring : ttb
+      );
+      setThingsTobring(newThingsToBring);
+    });
   };
 
   if (loading) return <CircularProgress />;
@@ -155,7 +161,7 @@ const Group: FunctionComponent = () => {
                     label={username}
                     className={classes.chip}
                     onDelete={
-                      username === user?.username
+                      username === cachedUser?.username
                         ? () => setSelfBringing(thingToBring, false)
                         : undefined
                     }
@@ -176,9 +182,9 @@ const Group: FunctionComponent = () => {
                   control={
                     <Switch
                       checked={
-                        user &&
+                        !!cachedUser?.username &&
                         thingToBring.usersBringing.includes(
-                          user?.username as string
+                          cachedUser?.username
                         )
                       }
                       onChange={async (ev) => {
@@ -188,13 +194,13 @@ const Group: FunctionComponent = () => {
                   }
                   label="I am bringing one"
                 />
-                {thingToBring.creatorId === user?._id && (
+                {thingToBring.creatorId === cachedUser?._id && (
                   <Button
                     variant="contained"
                     color="secondary"
                     startIcon={<Delete />}
                     onClick={() => {
-                      api.delete(`/thingsToBring/${thingToBring._id}`);
+                      deleteThingToBring(thingToBring._id);
                       setThingsTobring(
                         filter(thingsTobring, (t) => t._id !== thingToBring._id)
                       );
@@ -221,15 +227,17 @@ const Group: FunctionComponent = () => {
         open={dialogOpen}
         handleClose={handleClose}
         handleSubmit={async ({ bringing, ...values }) => {
-          const thingToBring = {
-            creatorId: user?.username,
-            usersBringing: bringing ? [user?.username] : [],
-            ...values,
-          };
+          getCurrentUser().then(async ({ data: { username } }) => {
+            const thingToBring = {
+              creatorId: username,
+              usersBringing: bringing ? [username] : [],
+              ...values,
+            };
 
-          await api.post(`/groups/${groupID}/addThingToBring`, thingToBring);
-          handleClose();
-          loadThings();
+            await addThingToBring(thingToBring, groupID);
+            handleClose();
+            loadThings();
+          });
         }}
       />
     </Box>

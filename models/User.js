@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
   },
   savedGroups: {
     type: [String],
+    default: [],
   },
   date: {
     type: Date,
