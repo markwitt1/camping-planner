@@ -29,8 +29,10 @@ router.post("/", ensureAuthenticated, (req, res) => {
 
 router.get("/:id", ensureAuthenticated, async (req, res) => {
   try {
-    const group = await Group.findOne({ _id: req.params.id });
-    res.send(group);
+    Group.findOne({ _id: req.params.id }, (err, group) => {
+      if (err) return res.status(404).send(err);
+      res.send(group);
+    });
   } catch (e) {
     res.send(e);
   }
@@ -71,14 +73,13 @@ router.post("/:id/addThingToBring", ensureAuthenticated, async (req, res) => {
 });
 
 router.get("/:id/getThingsToBring", ensureAuthenticated, async (req, res) => {
-  try {
+  Group.exists({ _id: req.params.id }, async (err, group) => {
+    if (err) return res.status(404).send(err);
     const thingsToBring = await ThingToBring.find({
-      groupId: req.params.id,
+      groupId: group._id,
     });
     res.send(thingsToBring);
-  } catch (e) {
-    res.send(e);
-  }
+  });
 });
 
 router.delete("/:id", ensureAuthenticated, (req, res) => {

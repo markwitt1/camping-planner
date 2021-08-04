@@ -26,9 +26,9 @@ const IsEmptyDisplay: FunctionComponent<Props> = ({
       <div>
         <Button
           variant="contained"
-          color="secondary"
           startIcon={<AddIcon />}
           onClick={onClick}
+          color="secondary"
         >
           {buttonText}
         </Button>

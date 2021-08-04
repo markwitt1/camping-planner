@@ -29,10 +29,11 @@ const useApi = () => {
           snackbar.showMessage(`error signing up: ${error.response?.data.err}`);
         } else {
           snackbar.showMessage("You have to be signed in to use this app");
+          push({ pathname: "/login", search: `?redirect=${pathname}` });
         }
-        push("/login");
       } else {
         snackbar.showMessage(`Error: ${error.message}`);
+        return error;
       }
     }
   );
@@ -49,6 +50,9 @@ const useApi = () => {
     api.post("/users/signup", creds);
 
   const logOut = (): Promise<AxiosResponse> => api.get("/users/logout");
+
+  const getGroup = (groupId: string): Promise<AxiosResponse<Group>> =>
+    api.get(`/groups/${groupId}`);
 
   const saveGroup = (groupId: string): Promise<AxiosResponse<User>> =>
     api.get(`/users/saveGroup/${groupId}`);
@@ -86,6 +90,7 @@ const useApi = () => {
     getCurrentUser,
     getUser,
     getSavedGroups,
+    getGroup,
     saveGroup,
     getThingsToBring,
     addThingToBring,

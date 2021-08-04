@@ -65,12 +65,14 @@ const Group: FunctionComponent = () => {
     getThingsToBring,
     deleteThingToBring,
     saveGroup,
+    getGroup,
   } = useApi();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [thingsTobring, setThingsTobring] = useState<ThingToBring[]>([]);
   const [cachedUser, setCachedUser] = useState<User | undefined>(undefined);
+  const [groupNotFound, setGroupNotFound] = useState(false);
 
   const handleClickOpen = () => {
     setDialogOpen(true);
@@ -80,28 +82,43 @@ const Group: FunctionComponent = () => {
   };
 
   const loadThings = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await getThingsToBring(groupID);
-      if (data) {
-        setThingsTobring(data);
-        console.log(data);
-      }
+    setLoading(true);
+    getThingsToBring(groupID)
+      .then((res) => {
+        if (res?.data) {
+          setThingsTobring(res?.data);
+        }
 
-      setLoading(false);
-    } catch (e) {
-      console.error(e);
-    }
+        setLoading(false);
+      })
+      .catch(() => {
+        setGroupNotFound(true);
+      });
   }, [groupID]);
 
   useEffect(() => {
     loadThings();
+    (async () => {
+      try {
+        const res = await getGroup(groupID);
+        if (res?.data === undefined) setGroupNotFound(true);
+      } catch (e) {
+        setGroupNotFound(true);
+      }
+    })();
+
     getCurrentUser().then((res) => {
       setCachedUser(res.data);
+
       setTimeout(() => {
         if (!!groupID && !res.data.savedGroups?.includes(groupID)) {
-          console.log("test");
-          saveGroup(groupID);
+          getGroup(groupID)
+            .then(({ status }) => {
+              if (status === 200) saveGroup(groupID);
+            })
+            .catch(
+              ({ err }) => err.response.status >= 400 && setGroupNotFound(true)
+            );
         }
       }, 100);
     });
@@ -126,6 +143,14 @@ const Group: FunctionComponent = () => {
   };
 
   if (loading) return <CircularProgress />;
+  if (groupNotFound)
+    return (
+      <Box margin="1rem">
+        <Typography align="center" variant="h4">
+          404. Group not found
+        </Typography>
+      </Box>
+    );
   return (
     <Box>
       {thingsTobring.length > 0 ? (
@@ -228,15 +253,19 @@ const Group: FunctionComponent = () => {
         handleClose={handleClose}
         handleSubmit={async ({ bringing, ...values }) => {
           getCurrentUser().then(async ({ data: { username } }) => {
-            const thingToBring = {
+            const payload = {
               creatorId: username,
               usersBringing: bringing ? [username] : [],
               ...values,
             };
 
-            await addThingToBring(thingToBring, groupID);
+            const { data: thingToBring } = await addThingToBring(
+              payload,
+              groupID
+            );
+            setThingsTobring([...thingsTobring, thingToBring]);
+
             handleClose();
-            loadThings();
           });
         }}
       />

@@ -60,7 +60,6 @@ router.get("/logout", (req, res) => {
 });
 
 router.get("/savedGroups", ensureAuthenticated, async (req, res) => {
-  console.log({ req });
   if (req.user.savedGroups.length === 0) {
     return res.json([]);
   }
@@ -68,7 +67,6 @@ router.get("/savedGroups", ensureAuthenticated, async (req, res) => {
     _id: { $in: req.user.savedGroups },
   });
 
-  console.log(savedGroups);
   res.json(savedGroups);
 });
 

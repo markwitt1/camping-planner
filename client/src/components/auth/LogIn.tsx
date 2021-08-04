@@ -8,7 +8,7 @@ import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import Container from "@material-ui/core/Container";
-import { Link as RouterLink, useHistory } from "react-router-dom";
+import { Link as RouterLink, useHistory, useLocation } from "react-router-dom";
 import { Field, Form, Formik } from "formik";
 
 import * as yup from "yup";
@@ -42,6 +42,7 @@ const LogIn: FunctionComponent = () => {
   const { push } = useHistory();
 
   const { logIn } = useApi();
+  const queryParams = new URLSearchParams(useLocation().search);
   return (
     <Box>
       <Formik
@@ -54,10 +55,15 @@ const LogIn: FunctionComponent = () => {
             .min(6, "Your password should have at least 8 characters"),
         })}
         onSubmit={async (values, { setSubmitting }) => {
-          console.log("submit");
           setSubmitting(true);
 
-          logIn(values).then((res) => res && push("/profile"));
+          logIn(values).then((res) => {
+            if (res?.status === 200) {
+              if (queryParams.has("redirect"))
+                push(queryParams.get("redirect") as string);
+              else push("/profile");
+            }
+          });
 
           setSubmitting(false);
         }}

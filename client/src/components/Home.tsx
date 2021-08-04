@@ -143,10 +143,9 @@ const Home: FunctionComponent = () => {
         open={dialogOpen}
         handleClose={handleClose}
         handleSubmit={async (values) => {
-          createGroup(values);
-
+          const { data: newGroup } = await createGroup(values);
+          setSavedGroups([...savedGroups, newGroup]);
           handleClose();
-          loadSavedGroups();
         }}
       />
     </Box>

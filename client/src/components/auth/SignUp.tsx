@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
 import * as yup from "yup";
-import { Link as RouterLink, useHistory } from "react-router-dom";
+import { Link as RouterLink, useHistory, useLocation } from "react-router-dom";
 import { Field, Form, Formik } from "formik";
 import { TextField } from "formik-material-ui";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
@@ -47,11 +47,17 @@ const SignUp: FunctionComponent = () => {
   const { push } = useHistory();
 
   const { logIn, signUp: apiSignUp } = useApi();
-
-  const signUp = async ({ username, password }: Values) => {
-    const res = await apiSignUp({ username, password });
+  const queryParams = new URLSearchParams(useLocation().search);
+  const signUp = async (values: Values) => {
+    const res = await apiSignUp(values);
     if (!res.data.err) {
-      logIn({ username, password }).then(() => push("/profile"));
+      logIn(values).then((res) => {
+        if (res?.status === 200) {
+          if (queryParams.has("redirect"))
+            push(queryParams.get("redirect") as string);
+          else push("/profile");
+        }
+      });
     }
   };
 
@@ -70,7 +76,6 @@ const SignUp: FunctionComponent = () => {
             .oneOf([yup.ref("password"), null], "Passwords must match"),
         })}
         onSubmit={async (values, { setSubmitting }) => {
-          console.log("submit");
           setSubmitting(true);
           await signUp(values);
           setSubmitting(false);
