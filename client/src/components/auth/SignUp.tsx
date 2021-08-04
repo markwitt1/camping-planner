@@ -47,7 +47,8 @@ const SignUp: FunctionComponent = () => {
   const { push } = useHistory();
 
   const { logIn, signUp: apiSignUp } = useApi();
-  const queryParams = new URLSearchParams(useLocation().search);
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
   const signUp = async (values: Values) => {
     const res = await apiSignUp(values);
     if (!res.data.err) {
@@ -139,7 +140,7 @@ const SignUp: FunctionComponent = () => {
                 <Grid item>
                   <Link
                     component={RouterLink}
-                    to="/login"
+                    to={`/login${search}`}
                     variant="body2"
                     /* onClick={() => setErrors({})} */
                   >

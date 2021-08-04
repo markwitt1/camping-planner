@@ -100,7 +100,9 @@ const Home: FunctionComponent = () => {
                   edge="end"
                   aria-label="share"
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
+                    navigator.clipboard.writeText(
+                      `${window.location.href}group/${savedGroup._id}`
+                    );
                     snackbar.showMessage(
                       "Group link has been copied to clipboard"
                     );

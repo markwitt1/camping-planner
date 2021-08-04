@@ -42,7 +42,8 @@ const LogIn: FunctionComponent = () => {
   const { push } = useHistory();
 
   const { logIn } = useApi();
-  const queryParams = new URLSearchParams(useLocation().search);
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
   return (
     <Box>
       <Formik
@@ -112,7 +113,11 @@ const LogIn: FunctionComponent = () => {
               </Button>
               <Grid container justifyContent="flex-end">
                 <Grid item>
-                  <Link component={RouterLink} to="/signup" variant="body2">
+                  <Link
+                    component={RouterLink}
+                    to={`/signup${search}`}
+                    variant="body2"
+                  >
                     Don't have an account? Sign Up
                   </Link>
                 </Grid>
