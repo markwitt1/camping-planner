@@ -58,11 +58,12 @@ router.post("/:id/addThingToBring", ensureAuthenticated, async (req, res) => {
   const group = await Group.findOne({ _id: req.params.id });
 
   const newThing = new ThingToBring(
-    _.merge(req.body, { creatorId: req.user._id, groupId: req.params.id })
+    _.merge(req.body, { creatorId: req.user._id, groupId: group._id })
   );
   newThing
     .save()
     .then((thingToBring) => {
+      console.log(thingToBring);
       if (!!group && !!thingToBring) {
         res.json(thingToBring);
       } else {
@@ -73,12 +74,15 @@ router.post("/:id/addThingToBring", ensureAuthenticated, async (req, res) => {
 });
 
 router.get("/:id/getThingsToBring", ensureAuthenticated, async (req, res) => {
-  Group.exists({ _id: req.params.id }, async (err, group) => {
-    if (err) return res.status(404).send(err);
-    const thingsToBring = await ThingToBring.find({
-      groupId: group._id,
-    });
-    res.send(thingsToBring);
+  Group.exists({ _id: req.params.id }, async (err, exists) => {
+    if (err || !exists) return res.status(404).send(err);
+    else {
+      const thingsToBring = await ThingToBring.find({
+        groupId: req.params.id,
+      });
+
+      res.send(thingsToBring);
+    }
   });
 });
 
