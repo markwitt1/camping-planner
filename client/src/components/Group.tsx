@@ -60,6 +60,8 @@ const Group: FunctionComponent = () => {
   const snackbar = useSnackbar();
   const classes = useStyles();
 
+  useScrollTop();
+
   const {
     addThingToBring,
     getCurrentUser,
@@ -129,7 +131,6 @@ const Group: FunctionComponent = () => {
     thingToBring: ThingToBring,
     bringing: boolean
   ) => {
-    useScrollTop();
     getCurrentUser().then(({ data: user }) => {
       thingToBring.usersBringing = bringing
         ? [...thingToBring.usersBringing, user.username as string]
