@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
+    "startClient":"npm start --prefix='client'",
+    "buildClient":"npm run build --prefix='client'",
     "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "keywords": [],

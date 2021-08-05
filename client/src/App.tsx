@@ -8,6 +8,7 @@ import CheckboxListIcon from "@material-ui/icons/AssignmentTurnedIn";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import Brightness7Icon from "@material-ui/icons/Brightness7";
+import Brightness4Icon from "@material-ui/icons/Brightness4";
 import Group from "./components/Group";
 import Profile from "./components/Profile";
 import LogIn from "./components/auth/LogIn";
@@ -67,7 +68,11 @@ const App: FunctionComponent = () => {
                   <AccountCircleIcon className={classes.icon} />
                 </IconButton>
                 <IconButton onClick={() => setDarkMode(!darkMode)}>
-                  <Brightness7Icon className={classes.icon} />
+                  {darkMode ? (
+                    <Brightness7Icon className={classes.icon} />
+                  ) : (
+                    <Brightness4Icon className={classes.icon} />
+                  )}
                 </IconButton>
               </Toolbar>
             </AppBar>
