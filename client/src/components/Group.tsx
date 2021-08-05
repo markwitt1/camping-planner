@@ -69,6 +69,7 @@ const Group: FunctionComponent = () => {
     deleteThingToBring,
     saveGroup,
     getGroup,
+    setUsersBringing,
   } = useApi();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -142,6 +143,7 @@ const Group: FunctionComponent = () => {
         ttb._id === thingToBring._id ? thingToBring : ttb
       );
       setThingsTobring(newThingsToBring);
+      setUsersBringing(thingToBring._id, thingToBring.usersBringing);
     });
   };
 
@@ -216,6 +218,7 @@ const Group: FunctionComponent = () => {
                         )
                       }
                       onChange={async (ev) => {
+                        console.log(ev);
                         setSelfBringing(thingToBring, ev.target.checked);
                       }}
                     />

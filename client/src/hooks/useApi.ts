@@ -83,6 +83,15 @@ const useApi = () => {
   const deleteGroup = (groupId: string): Promise<AxiosResponse> =>
     api.delete(`/groups/${groupId}`);
 
+  const setUsersBringing = async (
+    thingToBringId: string,
+    usersBringing: string[]
+  ): Promise<AxiosResponse<Group>> => {
+    return await api.put(`/thingsToBring/${thingToBringId}/setUsersBringing`, {
+      usersBringing,
+    });
+  };
+
   return {
     logIn,
     signUp,
@@ -97,6 +106,7 @@ const useApi = () => {
     createGroup,
     deleteGroup,
     deleteThingToBring,
+    setUsersBringing,
   };
 };
 

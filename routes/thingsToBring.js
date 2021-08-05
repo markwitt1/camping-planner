@@ -24,7 +24,8 @@ router.post("/", ensureAuthenticated, (req, res) => {
 router.get("/:id", ensureAuthenticated, async (req, res) => {
   try {
     const thingToBring = await ThingToBring.findOne({ _id: req.params.id });
-    res.send(thingToBring);
+    console.log(thingToBring);
+    res.json(thingToBring);
   } catch (e) {
     res.send(e);
   }
@@ -34,9 +35,27 @@ router.put("/:id", ensureAuthenticated, async (req, res) => {
   const thingToBring = await ThingToBring.findOne({ _id: req.params.id });
   if (thingToBring) {
     const newThing = _.merge(thingToBring, req.body);
+    console.log(newThing);
     newThing
       .save()
       .then((thing) => {
+        console.log(thing);
+        res.send(thing);
+      })
+      .catch((err) => res.statusCode(500).send(err));
+  } else {
+    res.status(404);
+  }
+});
+
+router.put("/:id/setUsersBringing", ensureAuthenticated, async (req, res) => {
+  const thingToBring = await ThingToBring.findOne({ _id: req.params.id });
+  if (thingToBring) {
+    thingToBring.usersBringing = req.body.usersBringing;
+    thingToBring
+      .save()
+      .then((thing) => {
+        console.log(thing);
         res.send(thing);
       })
       .catch((err) => res.statusCode(500).send(err));
