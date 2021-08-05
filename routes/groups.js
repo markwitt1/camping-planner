@@ -63,7 +63,6 @@ router.post("/:id/addThingToBring", ensureAuthenticated, async (req, res) => {
   newThing
     .save()
     .then((thingToBring) => {
-      console.log(thingToBring);
       if (!!group && !!thingToBring) {
         res.json(thingToBring);
       } else {

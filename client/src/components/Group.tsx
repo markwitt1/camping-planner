@@ -26,6 +26,7 @@ import { filter } from "lodash";
 import ThingDialog from "./dialogs/ThingDialog";
 import IsEmptyDisplay from "./IsEmptyDisplay";
 import useApi from "hooks/useApi";
+import useScrollTop from "hooks/useScrollTop";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -128,6 +129,7 @@ const Group: FunctionComponent = () => {
     thingToBring: ThingToBring,
     bringing: boolean
   ) => {
+    useScrollTop();
     getCurrentUser().then(({ data: user }) => {
       thingToBring.usersBringing = bringing
         ? [...thingToBring.usersBringing, user.username as string]

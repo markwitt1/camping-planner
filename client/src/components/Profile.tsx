@@ -1,5 +1,6 @@
 import { Box, Button, makeStyles, Typography } from "@material-ui/core";
 import useApi from "hooks/useApi";
+import useScrollTop from "hooks/useScrollTop";
 import React, { useEffect, useState } from "react";
 import { FunctionComponent } from "react";
 import { Link, useHistory } from "react-router-dom";
@@ -19,6 +20,8 @@ const Profile: FunctionComponent = () => {
   const classes = useStyles();
 
   const { logOut } = useApi();
+
+  useScrollTop();
 
   const { getCurrentUser } = useApi();
 

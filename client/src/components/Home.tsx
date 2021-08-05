@@ -23,6 +23,7 @@ import { useSnackbar } from "material-ui-snackbar-provider";
 import { Share as ShareIcon } from "@material-ui/icons";
 import useApi from "hooks/useApi";
 import { Link } from "react-router-dom";
+import useScrollTop from "hooks/useScrollTop";
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -55,6 +56,8 @@ const Home: FunctionComponent = () => {
   const { createGroup, deleteGroup, getSavedGroups } = useApi();
   const classes = useStyles();
   const snackbar = useSnackbar();
+
+  useScrollTop();
 
   const [savedGroups, setSavedGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
@@ -102,20 +105,26 @@ const Home: FunctionComponent = () => {
                   onClick={() => {
                     navigator.permissions
                       .query({ name: "clipboard-write" })
-                      .then((result) => {
+                      .then(async (result) => {
                         if (
                           result.state == "granted" ||
                           result.state == "prompt"
                         ) {
-                          navigator.clipboard.writeText(
-                            `${window.location.href}group/${savedGroup._id}`
-                          );
-                          snackbar.showMessage(
-                            "Please allow clipboard permission"
-                          );
+                          try {
+                            await navigator.clipboard.writeText(
+                              `${window.location.href}group/${savedGroup._id}`
+                            );
+                            snackbar.showMessage(
+                              "Group link has been copied to clipboard"
+                            );
+                          } catch (err) {
+                            snackbar.showMessage(
+                              "Please allow clipboard permission"
+                            );
+                          }
                         } else {
                           snackbar.showMessage(
-                            "Group link has been copied to clipboard"
+                            "Please allow clipboard permission"
                           );
                         }
                       });

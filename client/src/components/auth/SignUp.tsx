@@ -16,6 +16,7 @@ import {
   Typography,
 } from "@material-ui/core";
 import useApi from "hooks/useApi";
+import useScrollTop from "hooks/useScrollTop";
 
 interface Values {
   username: string;
@@ -45,6 +46,7 @@ const useStyles = makeStyles((theme) => ({
 const SignUp: FunctionComponent = () => {
   const classes = useStyles();
   const { push } = useHistory();
+  useScrollTop();
 
   const { logIn, signUp: apiSignUp } = useApi();
   const { search } = useLocation();

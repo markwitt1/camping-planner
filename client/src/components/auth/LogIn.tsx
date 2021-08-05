@@ -17,6 +17,7 @@ import { TextField } from "formik-material-ui";
 import { FunctionComponent } from "react";
 import { Box } from "@material-ui/core";
 import useApi from "hooks/useApi";
+import useScrollTop from "hooks/useScrollTop";
 const useStyles = makeStyles((theme) => ({
   paper: {
     marginTop: theme.spacing(8),
@@ -44,6 +45,7 @@ const LogIn: FunctionComponent = () => {
   const { logIn } = useApi();
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
+  useScrollTop();
   return (
     <Box>
       <Formik
